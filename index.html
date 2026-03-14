@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>威廷 & 慧安 幸福喜宴 - 座位查詢</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { font-size: 18px; }
+
+  body {
+    font-family: 'Noto Serif TC', '華康明體', 'Times New Roman', serif;
+    background: #faf8f3;
+    color: #333;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Decorative background leaves using CSS */
+  .bg-decor {
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .bg-decor.top-right {
+    top: -30px; right: -20px;
+    width: 180px; height: 180px;
+    background: radial-gradient(ellipse at 80% 20%, rgba(122,140,110,0.12) 0%, transparent 70%);
+  }
+  .bg-decor.bot-left {
+    bottom: -30px; left: -20px;
+    width: 160px; height: 160px;
+    background: radial-gradient(ellipse at 20% 80%, rgba(122,140,110,0.1) 0%, transparent 70%);
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== Header ===== */
+  .header {
+    text-align: center;
+    padding: 24px 0 12px;
+  }
+  .header .leaf-top {
+    display: block;
+    margin: 0 auto 8px;
+    opacity: 0.25;
+  }
+  .couple-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #7b6b2e;
+    letter-spacing: 6px;
+    text-shadow: 0 1px 2px rgba(123,107,46,0.12);
+  }
+  .subtitle {
+    font-size: 1.05rem;
+    color: #7e9470;
+    letter-spacing: 8px;
+    margin-top: 4px;
+  }
+  .divider {
+    margin: 14px auto;
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #9b8b4a, transparent);
+  }
+
+  /* ===== Search ===== */
+  .search-section {
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .search-label {
+    display: block;
+    font-size: 1.05rem;
+    color: #666;
+    margin-bottom: 12px;
+  }
+  .search-box {
+    position: relative;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 16px 56px 16px 22px;
+    font-size: 1.2rem;
+    font-family: inherit;
+    border: 2px solid #c9c4ab;
+    border-radius: 50px;
+    background: #fff;
+    color: #333;
+    outline: none;
+    transition: all 0.3s;
+    -webkit-appearance: none;
+  }
+  .search-box input:focus {
+    border-color: #7b6b2e;
+    box-shadow: 0 0 0 4px rgba(184,150,12,0.1);
+  }
+  .search-box input::placeholder { color: #bbb; }
+  .clear-btn {
+    position: absolute;
+    right: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: #e5e2d5;
+    color: #999;
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .clear-btn.show { display: flex; }
+  .clear-btn:active { background: #d4c9a8; }
+
+  /* ===== Suggestions ===== */
+  .suggestions {
+    max-width: 380px;
+    margin: 8px auto 0;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 6px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+    display: none;
+  }
+  .suggestions.show { display: block; }
+  .suggestion-item {
+    padding: 16px 22px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0ede4;
+    min-height: 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .suggestion-item:last-child { border-bottom: none; }
+  .suggestion-item:active { background: #f8f5ec; }
+  .suggestion-item .s-name {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #333;
+  }
+  .suggestion-item .s-table {
+    font-size: 0.9rem;
+    color: #7e9470;
+    margin-top: 2px;
+  }
+
+  .no-result {
+    text-align: center;
+    color: #9b8b4a;
+    font-size: 1.05rem;
+    margin: 18px 0;
+    display: none;
+    line-height: 1.7;
+  }
+  .no-result.show { display: block; }
+
+  /* ===== Result Card ===== */
+  .result-card {
+    max-width: 400px;
+    margin: 0 auto 20px;
+    background: linear-gradient(160deg, #fffef9, #f5f0e0);
+    border: 1.5px solid #c9c4ab;
+    border-radius: 20px;
+    padding: 28px 20px;
+    text-align: center;
+    display: none;
+    animation: fadeSlideIn 0.4s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-card::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 100px; height: 100px;
+    background: radial-gradient(circle, rgba(122,140,110,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .result-card.show { display: block; }
+  .r-greeting {
+    font-size: 0.95rem;
+    color: #7e9470;
+    margin-bottom: 6px;
+  }
+  .r-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #7b6b2e;
+    margin-bottom: 16px;
+  }
+  .r-table {
+    display: inline-block;
+    background: linear-gradient(135deg, #7e9470, #637a55);
+    color: #fff;
+    padding: 14px 40px;
+    border-radius: 50px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    box-shadow: 0 4px 12px rgba(107,125,94,0.25);
+  }
+  .r-group {
+    font-size: 1rem;
+    color: #777;
+    margin-top: 14px;
+  }
+  .r-hint {
+    font-size: 0.8rem;
+    color: #9b8b4a;
+    margin-top: 14px;
+    animation: bounce 2s infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+  }
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== Floor Map ===== */
+  .map-section { margin: 0 0 16px; }
+  .map-title {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #7e9470;
+    margin-bottom: 8px;
+    letter-spacing: 3px;
+  }
+  .map-wrapper {
+    border: 1.5px solid #c9c4ab;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #fdfcf8, #f7f4ec);
+    padding: 16px 8px 20px;
+  }
+
+  /* Vertical map layout - two columns */
+  .floor-map {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 4px;
+  }
+
+  /* Stage */
+  .stage {
+    width: 90%;
+    max-width: 320px;
+    padding: 8px 0;
+    background: linear-gradient(90deg, #e8e3d5, #ddd6c3);
+    text-align: center;
+    font-size: 0.9rem;
+    color: #999;
+    letter-spacing: 8px;
+    border-radius: 8px;
+  }
+
+  /* Main table row */
+  .main-row {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Two-column body */
+  .table-columns {
+    display: flex;
+    justify-content: center;
+    gap: 56px;
+    width: 100%;
+  }
+  .table-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .col-label {
+    font-size: 0.65rem;
+    color: #bbb;
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  /* Table circles */
+  .table-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .table-circle {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #a8b89b, #92a586);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.35s ease;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.25);
+    user-select: none;
+    flex-shrink: 0;
+  }
+  .table-circle:active { transform: scale(0.93); }
+  .t-num {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  .t-label {
+    font-size: 0.75rem;
+    color: #888;
+    text-align: center;
+  }
+
+  /* Main table */
+  .table-circle.main-table {
+    width: 88px; height: 88px;
+    background: linear-gradient(145deg, #b09838, #8a7520);
+    box-shadow: 0 4px 18px rgba(184,150,12,0.3), inset 0 2px 4px rgba(255,255,255,0.2);
+  }
+  .table-circle.main-table .t-num { font-size: 1.2rem; }
+
+  /* Highlight */
+  .table-circle.highlight {
+    background: linear-gradient(145deg, #b09838, #8a7520) !important;
+    box-shadow: 0 0 0 5px rgba(184,150,12,0.25), 0 0 20px rgba(184,150,12,0.3) !important;
+    transform: scale(1.2);
+    z-index: 10;
+    animation: glow 1.8s ease-in-out infinite;
+  }
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 0 5px rgba(184,150,12,0.25), 0 0 20px rgba(184,150,12,0.3); }
+    50% { box-shadow: 0 0 0 10px rgba(184,150,12,0.12), 0 0 32px rgba(184,150,12,0.4); }
+  }
+  .table-circle.dimmed { opacity: 0.25; }
+
+  /* Table info panel below map */
+  .info-panel {
+    max-width: 420px;
+    margin: 14px auto 0;
+    background: #fff;
+    border: 1.5px solid #c9c4ab;
+    border-radius: 16px;
+    padding: 18px 20px;
+    display: none;
+    animation: fadeSlideIn 0.25s ease;
+  }
+  .info-panel.show { display: block; }
+  .ip-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .ip-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #7b6b2e;
+  }
+  .ip-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #bbb;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+  }
+  .ip-close:active { color: #888; }
+  .ip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+  }
+  .ip-guest {
+    font-size: 1rem;
+    color: #555;
+    padding: 3px 0;
+  }
+  .ip-guest.ip-me {
+    color: #7b6b2e;
+    font-weight: 700;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 16px 0 32px;
+    color: #c9c4ab;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 400px) {
+    .table-columns { gap: 40px; }
+    .table-circle { width: 64px; height: 64px; }
+    .table-circle.main-table { width: 80px; height: 80px; }
+    .t-num { font-size: 1rem; }
+    .t-label { font-size: 0.7rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-decor top-right"></div>
+<div class="bg-decor bot-left"></div>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <!-- Decorative leaf SVG -->
+    <svg class="leaf-top" width="60" height="30" viewBox="0 0 60 30" fill="none">
+      <path d="M30 28C30 28 10 20 4 8C2 4 8 0 14 2C20 4 28 14 30 20C32 14 40 4 46 2C52 0 58 4 56 8C50 20 30 28 30 28Z" fill="#7e9470"/>
+      <path d="M20 26C20 26 26 14 30 20" stroke="#9b8b4a" stroke-width="0.5" fill="none" opacity="0.5"/>
+      <path d="M40 26C40 26 34 14 30 20" stroke="#9b8b4a" stroke-width="0.5" fill="none" opacity="0.5"/>
+    </svg>
+    <div class="couple-name">威廷 & 慧安</div>
+    <div class="subtitle">幸福喜宴</div>
+    <div class="divider"></div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-section">
+    <label class="search-label">請輸入您的姓名查詢座位</label>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="請輸入姓名" autocomplete="off" enterkeyhint="search">
+      <button class="clear-btn" id="clearBtn" aria-label="清除">&times;</button>
+    </div>
+    <div class="suggestions" id="suggestions"></div>
+    <div class="no-result" id="noResult">找不到此姓名<br>請確認後再試一次</div>
+  </div>
+
+  <!-- Result Card -->
+  <div class="result-card" id="resultCard">
+    <div class="r-greeting">歡迎您的到來</div>
+    <div class="r-name" id="resultName"></div>
+    <div class="r-table" id="resultTable"></div>
+    <div class="r-group" id="resultGroup"></div>
+    <div class="r-hint" id="scrollHint">&#9661; 下方地圖查看桌位位置 &#9661;</div>
+  </div>
+
+  <!-- Floor Map -->
+  <div class="map-section">
+    <div class="map-title">- 場 地 座 位 圖 -</div>
+    <div class="map-wrapper" id="mapWrapper">
+      <div class="floor-map" id="floorMap">
+        <div class="stage">舞 台</div>
+
+        <!-- Main table -->
+        <div class="main-row">
+          <div class="table-circle main-table" data-table="主桌">
+            <span class="t-num">主桌</span>
+          </div>
+        </div>
+
+        <!-- Two columns: left=odd(top row), right=even(bottom row) -->
+        <div class="table-columns">
+          <div class="table-col">
+            <div class="table-item">
+              <div class="table-circle" data-table="1"><span class="t-num">1</span></div>
+              <span class="t-label">爸爸樹林姊妹</span>
+            </div>
+            <div class="table-item">
+              <div class="table-circle" data-table="3"><span class="t-num">3</span></div>
+              <span class="t-label">媽媽新營娘家</span>
+            </div>
+            <div class="table-item">
+              <div class="table-circle" data-table="5"><span class="t-num">5</span></div>
+              <span class="t-label">新人兄弟姊妹</span>
+            </div>
+            <div class="table-item">
+              <div class="table-circle" data-table="7"><span class="t-num">7</span></div>
+              <span class="t-label">爸爸永大兄弟</span>
+            </div>
+            <div class="table-item">
+              <div class="table-circle" data-table="9"><span class="t-num">9</span></div>
+              <span class="t-label">爸爸樹中兄弟</span>
+            </div>
+            <div class="table-item">
+              <div class="table-circle" data-table="11"><span class="t-num">11</span></div>
+              <span class="t-label">爸爸大安兄弟</span>
+            </div>
+          </div>
+          <div class="table-col">
+            <div class="table-item">
+              <div class="table-circle" data-table="2"><span class="t-num">2</span></div>
+              <span class="t-label">華江妹仔</span>
+            </div>
+            <div class="table-item">
+              <div class="table-circle" data-table="4"><span class="t-num">4</span></div>
+              <span class="t-label">東海女宿</span>
+            </div>
+            <div class="table-item">
+              <div class="table-circle" data-table="6"><span class="t-num">6</span></div>
+              <span class="t-label">四海同心</span>
+            </div>
+            <div class="table-item">
+              <div class="table-circle" data-table="8"><span class="t-num">8</span></div>
+              <span class="t-label">新郎真理同學</span>
+            </div>
+            <div class="table-item">
+              <div class="table-circle" data-table="10"><span class="t-num">10</span></div>
+              <span class="t-label">新郎真理同學</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-panel" id="infoPanel"></div>
+  </div>
+
+  <div class="footer">威廷 & 慧安 &#183; 幸福喜宴 &#183; 座位導覽</div>
+</div>
+
+<script>
+const guests = [
+  {name:'新人',table:'主桌',tableLabel:'主桌',people:2},
+  {name:'新郎爸爸',table:'主桌',tableLabel:'主桌',people:1},
+  {name:'新郎媽媽',table:'主桌',tableLabel:'主桌',people:1},
+  {name:'新娘爸爸',table:'主桌',tableLabel:'主桌',people:1},
+  {name:'新娘媽媽',table:'主桌',tableLabel:'主桌',people:1},
+  {name:'新郎阿嬤',table:'主桌',tableLabel:'主桌',people:1},
+  {name:'賴盈兆',table:'主桌',tableLabel:'主桌',people:3},
+  {name:'曾貴盆',table:'主桌',tableLabel:'主桌',people:1},
+  {name:'喻文國',table:'主桌',tableLabel:'主桌',people:1},
+  {name:'賴麗婷',table:'1',tableLabel:'爸爸樹林姊妹',people:1},
+  {name:'賴思帆',table:'1',tableLabel:'爸爸樹林姊妹',people:1},
+  {name:'王士賢',table:'1',tableLabel:'爸爸樹林姊妹',people:1},
+  {name:'賴品姿',table:'1',tableLabel:'爸爸樹林姊妹',people:1},
+  {name:'王美惠',table:'1',tableLabel:'爸爸樹林姊妹',people:1},
+  {name:'賴畹蓁',table:'1',tableLabel:'爸爸樹林姊妹',people:1},
+  {name:'賴錦雀',table:'1',tableLabel:'爸爸樹林姊妹',people:3},
+  {name:'艾莎',table:'1',tableLabel:'爸爸樹林姊妹',people:1},
+  {name:'楊茵淇',table:'2',tableLabel:'華江妹仔',people:1},
+  {name:'藍紫芸',table:'2',tableLabel:'華江妹仔',people:2},
+  {name:'陳郁庭',table:'2',tableLabel:'華江妹仔',people:1},
+  {name:'張芝珺',table:'2',tableLabel:'華江妹仔',people:1},
+  {name:'黃資雅',table:'2',tableLabel:'華江妹仔',people:2},
+  {name:'李映嬋',table:'2',tableLabel:'華江妹仔',people:2},
+  {name:'喻美玲',table:'3',tableLabel:'媽媽新營娘家',people:2},
+  {name:'喻月玲',table:'3',tableLabel:'媽媽新營娘家',people:1},
+  {name:'喻文國',table:'3',tableLabel:'媽媽新營娘家',people:3},
+  {name:'曾正瑋',table:'3',tableLabel:'媽媽新營娘家',people:1},
+  {name:'馬海霞',table:'3',tableLabel:'媽媽新營娘家',people:1},
+  {name:'連淑惠',table:'3',tableLabel:'媽媽新營娘家',people:1},
+  {name:'李詠慧',table:'4',tableLabel:'東海女宿',people:1},
+  {name:'江宜庭',table:'4',tableLabel:'東海女宿',people:1},
+  {name:'陳柏雅',table:'4',tableLabel:'東海女宿',people:1},
+  {name:'黃汶茜',table:'4',tableLabel:'東海女宿',people:1},
+  {name:'洪海峰',table:'4',tableLabel:'東海女宿',people:1},
+  {name:'邱怡儒',table:'4',tableLabel:'東海女宿',people:2},
+  {name:'蘇郁婷',table:'4',tableLabel:'東海女宿',people:1},
+  {name:'邱重穎',table:'4',tableLabel:'東海女宿',people:1},
+  {name:'游宇馨',table:'4',tableLabel:'東海女宿',people:1},
+  {name:'賴品君',table:'5',tableLabel:'新人兄弟姊妹',people:2},
+  {name:'賴品文',table:'5',tableLabel:'新人兄弟姊妹',people:2},
+  {name:'安大姐',table:'5',tableLabel:'新人兄弟姊妹',people:1},
+  {name:'安二姐',table:'5',tableLabel:'新人兄弟姊妹',people:1},
+  {name:'安弟弟',table:'5',tableLabel:'新人兄弟姊妹',people:1},
+  {name:'柔雅',table:'5',tableLabel:'新人兄弟姊妹',people:2},
+  {name:'莊英楷',table:'6',tableLabel:'四海同心',people:1},
+  {name:'鄭慶豐',table:'6',tableLabel:'四海同心',people:1},
+  {name:'許仲泰',table:'6',tableLabel:'四海同心',people:2},
+  {name:'蔡曜鴻',table:'6',tableLabel:'四海同心',people:1},
+  {name:'邱翊洋',table:'6',tableLabel:'四海同心',people:1},
+  {name:'方婷萱',table:'6',tableLabel:'四海同心',people:1},
+  {name:'敖若庭',table:'6',tableLabel:'四海同心',people:1},
+  {name:'李佳勳',table:'6',tableLabel:'四海同心',people:1},
+  {name:'盧朝宏',table:'7',tableLabel:'爸爸永大兄弟',people:2},
+  {name:'張文華',table:'7',tableLabel:'爸爸永大兄弟',people:2},
+  {name:'劉榮貴',table:'7',tableLabel:'爸爸永大兄弟',people:2},
+  {name:'黃意隆',table:'7',tableLabel:'爸爸永大兄弟',people:2},
+  {name:'吳承軒',table:'7',tableLabel:'爸爸永大兄弟',people:2},
+  {name:'蔡恩捷',table:'8',tableLabel:'新郎真理同學',people:2},
+  {name:'劉易恩',table:'8',tableLabel:'新郎真理同學',people:1},
+  {name:'汪啟軒',table:'8',tableLabel:'新郎真理同學',people:2},
+  {name:'王勇翔',table:'8',tableLabel:'新郎真理同學',people:2},
+  {name:'周孫毅',table:'8',tableLabel:'新郎真理同學',people:2},
+  {name:'簡炳坤',table:'9',tableLabel:'爸爸樹中兄弟',people:2},
+  {name:'周銘陽',table:'9',tableLabel:'爸爸樹中兄弟',people:2},
+  {name:'黃思遠',table:'9',tableLabel:'爸爸樹中兄弟',people:2},
+  {name:'趙正恭',table:'9',tableLabel:'爸爸樹中兄弟',people:1},
+  {name:'古次弘',table:'9',tableLabel:'爸爸樹中兄弟',people:1},
+  {name:'賴瑞碧',table:'9',tableLabel:'爸爸樹中兄弟',people:2},
+  {name:'王翊萱',table:'10',tableLabel:'新郎真理同學',people:2},
+  {name:'林思紜',table:'10',tableLabel:'新郎真理同學',people:1},
+  {name:'黃于庭',table:'10',tableLabel:'新郎真理同學',people:1},
+  {name:'鄧芷芸',table:'10',tableLabel:'新郎真理同學',people:1},
+  {name:'王子薇',table:'10',tableLabel:'新郎真理同學',people:2},
+  {name:'陳柏維',table:'10',tableLabel:'新郎真理同學',people:1},
+  {name:'李啟源',table:'11',tableLabel:'爸爸大安兄弟',people:2},
+  {name:'江信毅',table:'11',tableLabel:'爸爸大安兄弟',people:2},
+  {name:'江春財',table:'11',tableLabel:'爸爸大安兄弟',people:2},
+  {name:'陳逸祥',table:'11',tableLabel:'爸爸大安兄弟',people:2},
+  {name:'賴素蓮',table:'11',tableLabel:'爸爸大安兄弟',people:2},
+];
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+const searchInput = $('#searchInput');
+const clearBtn = $('#clearBtn');
+const suggestionsEl = $('#suggestions');
+const noResultEl = $('#noResult');
+const resultCard = $('#resultCard');
+const mapWrapper = $('#mapWrapper');
+const infoPanel = $('#infoPanel');
+const circles = $$('.table-circle');
+
+let selected = null;
+
+function fmt(t) { return t === '主桌' ? '主桌' : '第 ' + t + ' 桌'; }
+
+function hl(name, q) {
+  const i = name.indexOf(q);
+  if (i < 0) return name;
+  return name.slice(0,i) + '<b style="color:#7b6b2e">' + q + '</b>' + name.slice(i+q.length);
+}
+
+searchInput.addEventListener('input', function() {
+  const q = this.value.trim();
+  clearBtn.classList.toggle('show', q.length > 0);
+  noResultEl.classList.remove('show');
+  infoPanel.classList.remove('show');
+
+  if (!q) {
+    suggestionsEl.classList.remove('show');
+    resultCard.classList.remove('show');
+    clearHL();
+    return;
+  }
+
+  const m = guests.filter(g => g.name.includes(q));
+  if (!m.length) {
+    suggestionsEl.classList.remove('show');
+    noResultEl.classList.add('show');
+    return;
+  }
+
+  suggestionsEl.innerHTML = m.map(g =>
+    `<div class="suggestion-item" data-idx="${guests.indexOf(g)}">
+      <div class="s-name">${hl(g.name, q)}</div>
+      <div class="s-table">${fmt(g.table)} - ${g.tableLabel}</div>
+    </div>`
+  ).join('');
+  suggestionsEl.classList.add('show');
+
+  if (m.length === 1) pick(m[0]);
+});
+
+suggestionsEl.addEventListener('click', e => {
+  const it = e.target.closest('.suggestion-item');
+  if (it) { pick(guests[+it.dataset.idx]); suggestionsEl.classList.remove('show'); }
+});
+
+clearBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  clearBtn.classList.remove('show');
+  suggestionsEl.classList.remove('show');
+  noResultEl.classList.remove('show');
+  resultCard.classList.remove('show');
+  infoPanel.classList.remove('show');
+  clearHL();
+  searchInput.focus();
+});
+
+function pick(g) {
+  selected = g;
+  searchInput.value = g.name;
+  clearBtn.classList.add('show');
+  noResultEl.classList.remove('show');
+  suggestionsEl.classList.remove('show');
+
+  $('#resultName').textContent = g.name;
+  $('#resultTable').textContent = fmt(g.table);
+  $('#resultGroup').textContent = g.tableLabel;
+  resultCard.classList.add('show');
+
+  // Highlight on map
+  circles.forEach(c => {
+    c.classList.remove('highlight','dimmed');
+    c.dataset.table === g.table ? c.classList.add('highlight') : c.classList.add('dimmed');
+  });
+
+  // Scroll highlighted table into view
+  const hc = document.querySelector('.table-circle.highlight');
+  if (hc) {
+    setTimeout(() => hc.scrollIntoView({ behavior:'smooth', block:'nearest' }), 350);
+  }
+
+  searchInput.blur();
+  setTimeout(() => resultCard.scrollIntoView({ behavior:'smooth', block:'center' }), 200);
+}
+
+function clearHL() {
+  selected = null;
+  circles.forEach(c => c.classList.remove('highlight','dimmed'));
+}
+
+// Table click
+circles.forEach(c => c.addEventListener('click', () => {
+  const tid = c.dataset.table;
+  const tg = guests.filter(g => g.table === tid);
+  const gl = tg.length ? tg[0].tableLabel : '';
+
+  infoPanel.innerHTML =
+    `<div class="ip-head">
+      <span class="ip-title">${fmt(tid)}${gl ? ' - '+gl : ''}</span>
+      <button class="ip-close" onclick="this.closest('.info-panel').classList.remove('show')">&times;</button>
+    </div>
+    <div class="ip-list">${tg.map(g =>
+      `<span class="ip-guest${selected && g.name===selected.name && g.table===selected.table ? ' ip-me' : ''}">${g.name}</span>`
+    ).join('')}</div>`;
+  infoPanel.classList.add('show');
+  setTimeout(() => infoPanel.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
+}));
+
+// Close suggestions on outside tap
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-box') && !e.target.closest('.suggestions'))
+    suggestionsEl.classList.remove('show');
+});
+</script>
+
+</body>
+</html>
